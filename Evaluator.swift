@@ -8,6 +8,11 @@
 
 import Foundation
 
+class Nil : Expression {
+    init() { super.init(type: ExpressionType.Nil) }
+    override func toString() -> String { return "#n" }
+}
+
 class Boolean : Expression {
     let value : Bool
     init(value: Bool) {
@@ -53,13 +58,15 @@ class List : Expression {
     }
     override func eval() -> Expression {
         let op = (items[0] as Symbol).name
+        var result : Expression? = nil
         switch op {
-        case "+", "-", "*", "/", "%": return self.arithmetic(op)
-        case "<", ">", "=": return self.comparate(op)
-        default: return Expression(type: ExpressionType.Expression)
+        case "+", "-", "*", "/", "%": result = self.arithmetic(op)
+        case "<", ">", "=": result = self.comparate(op)
+        default: return Nil()
         }
+        return result ? result! : Nil()
     }
-    func arithmetic(op : String) -> Number {
+    func arithmetic(op : String) -> Number? {
         var acc = (items[1].eval() as Number).value
         for var i = 2; i < items.count; i++ {
             let x = (items[i].eval() as Number).value
@@ -70,19 +77,19 @@ class List : Expression {
             case "/": acc /= x
             case "%": acc %= x
             default:
-                return Number(value: 9984)
+                return nil
             }
         }
         return Number(value: acc)
     }
-    func comparate(op : String) -> Boolean {
+    func comparate(op : String) -> Boolean? {
         let left = (items[1].eval() as Number).value
         let right = (items[2].eval() as Number).value
         switch op {
         case "<": return Boolean(value: left < right)
         case ">": return Boolean(value: left > right)
         case "=": return Boolean(value: left == right)
-        default: return Boolean(value: false)
+        default: return nil
         }
     }
 }
@@ -103,6 +110,7 @@ enum ExpressionType {
     case Number
     case List
     case Expression
+    case Nil
 }
 
 

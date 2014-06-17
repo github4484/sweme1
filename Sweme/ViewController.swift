@@ -16,7 +16,10 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view, typically from a nib.
         let evaluator = Evaluator()
         println("evaluator init")
-        let expression = evaluator.parse("(+ 0 (+ 1 22) 333)")
+        //let sexpression = "(+ 0 (* 11 22) 333)"
+        //let sexpression = "(* 11 22)"
+        let sexpression = "(< (+ 1 3) (* 2 2))"
+        let expression = evaluator.parse(sexpression)
         println("parsed")
         println(expression?.toString())
         let evaluated = evaluator.eval(expression!)

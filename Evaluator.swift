@@ -43,19 +43,23 @@ class List : Expression {
         return str + ")"
     }
     override func eval() -> Expression {
-        println("eval:" + self.toString())
-        var sum = 0
-        var index = 1
-        for var i = 1; i < items.count; i++ {
-            let item = items[i]
-            let number = item.eval().toInt()
-            if let n = number {
-                sum += n
+        return self.arithmetic()
+    }
+    func arithmetic() -> Number {
+        var acc = (items[1].eval() as Number).value
+        for var i = 2; i < items.count; i++ {
+            let x = (items[i].eval() as Number).value
+            switch (items[0] as Symbol).name {
+            case "+": acc += x
+            case "-": acc -= x
+            case "*": acc *= x
+            case "/": acc /= x
+            case "%": acc %= x
+            default:
+                return Number(value: 9984)
             }
-            index++
         }
-        return Number(value: sum)
-
+        return Number(value: acc)
     }
 }
 /*
@@ -157,15 +161,11 @@ class Evaluator {
             return (nil, nextIndex - 1)
         }
 
-        let restInput = input.substringFromIndex(nextIndex)
-        println("restInput => '" + restInput + "'")
-        switch restInput {
-        case let x where x.hasPrefix("("):
-            return ("(", nextIndex)
-        case let x where x.hasPrefix(")"):
-            return (")", nextIndex)
-        case let x where x.hasPrefix("+"):
-            return ("+", nextIndex)
+        let nextChar = input.substringFromIndex(nextIndex).substringToIndex(1)
+        println("nextChar => '" + nextChar + "'")
+        switch nextChar {
+        case "(", ")", "+", "*", "-", "/", "%":
+            return (nextChar, nextIndex)
         default:
             println("readNumber")
             return readNumber(input, startIndex: nextIndex)
@@ -195,8 +195,8 @@ class Evaluator {
         case "(":
             println("readTilListEnd")
             return readTillListEnd(tokens, startIndex: startIndex + 1, endIndex: endIndex)
-        case "+":
-            return (Symbol(name: "+"), startIndex)
+        case "+", "*":
+            return (Symbol(name: tokens[startIndex]), startIndex)
         default:
             println("'" + tokens[startIndex] + "'.toInt")
             let value = tokens[startIndex].toInt()

@@ -8,6 +8,15 @@
 
 import Foundation
 
+class Boolean : Expression {
+    let value : Bool
+    init(value: Bool) {
+        self.value = value
+        super.init(type: ExpressionType.Boolean)
+    }
+    override func toString() -> String { return self.value ? "#t" : "#f" }
+}
+
 class Number : Expression {
     let value : Int
     init(value: Int){
@@ -43,13 +52,18 @@ class List : Expression {
         return str + ")"
     }
     override func eval() -> Expression {
-        return self.arithmetic()
+        let op = (items[0] as Symbol).name
+        switch op {
+        case "+", "-", "*", "/", "%": return self.arithmetic(op)
+        case "<", ">", "=": return self.comparate(op)
+        default: return Expression(type: ExpressionType.Expression)
+        }
     }
-    func arithmetic() -> Number {
+    func arithmetic(op : String) -> Number {
         var acc = (items[1].eval() as Number).value
         for var i = 2; i < items.count; i++ {
             let x = (items[i].eval() as Number).value
-            switch (items[0] as Symbol).name {
+            switch op {
             case "+": acc += x
             case "-": acc -= x
             case "*": acc *= x
@@ -60,6 +74,16 @@ class List : Expression {
             }
         }
         return Number(value: acc)
+    }
+    func comparate(op : String) -> Boolean {
+        let left = (items[1].eval() as Number).value
+        let right = (items[2].eval() as Number).value
+        switch op {
+        case "<": return Boolean(value: left < right)
+        case ">": return Boolean(value: left > right)
+        case "=": return Boolean(value: left == right)
+        default: return Boolean(value: false)
+        }
     }
 }
 /*
@@ -75,7 +99,7 @@ class Pair : Expression {
 */
 enum ExpressionType {
     case Symbol
-    case Pair
+    case Boolean
     case Number
     case List
     case Expression
@@ -164,7 +188,7 @@ class Evaluator {
         let nextChar = input.substringFromIndex(nextIndex).substringToIndex(1)
         println("nextChar => '" + nextChar + "'")
         switch nextChar {
-        case "(", ")", "+", "*", "-", "/", "%":
+        case "(", ")", "+", "*", "-", "/", "%", "<", ">", "=":
             return (nextChar, nextIndex)
         default:
             println("readNumber")
@@ -195,7 +219,7 @@ class Evaluator {
         case "(":
             println("readTilListEnd")
             return readTillListEnd(tokens, startIndex: startIndex + 1, endIndex: endIndex)
-        case "+", "*":
+        case "+", "*", "*", "-", "/", "%", "<", ">", "=":
             return (Symbol(name: tokens[startIndex]), startIndex)
         default:
             println("'" + tokens[startIndex] + "'.toInt")

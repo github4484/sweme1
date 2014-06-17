@@ -60,8 +60,12 @@ class List : Expression {
         let op = (items[0] as Symbol).name
         var result : Expression? = nil
         switch op {
-        case "+", "-", "*", "/", "%": result = self.arithmetic(op)
-        case "<", ">", "=": result = self.comparate(op)
+        case "+", "-", "*", "/", "%":
+            result = self.arithmetic(op)
+        case "<", ">", "=":
+            result = self.comparate(op)
+        case "if":
+            result = (items[1].eval() as Boolean).value ? items[2].eval() : items[3].eval()
         default: return Nil()
         }
         return result ? result! : Nil()
@@ -198,9 +202,11 @@ class Evaluator {
         switch nextChar {
         case "(", ")", "+", "*", "-", "/", "%", "<", ">", "=":
             return (nextChar, nextIndex)
-        default:
+        case "1", "2", "3", "4", "5", "6", "7", "8", "9", "0":
             println("readNumber")
             return readNumber(input, startIndex: nextIndex)
+        default:
+            return ("if", nextIndex + 2) //readSymbol2(input, startIndex: nextIndex)
         }
     }
     
@@ -222,12 +228,25 @@ class Evaluator {
         return (value, nextIndex - 1)
     }
 
+    func readSymbol2(input : String, startIndex : Int) -> (token : String?, lanstIndex : Int) {
+        var token = ""
+        var nextIndex = startIndex
+        while nextIndex < countElements(input) {
+            let nextChar = input.substringFromIndex(nextIndex).substringToIndex(1)
+            switch nextChar {
+            case " ": return (token, nextIndex)
+            default : token += nextChar
+            }
+        }
+        return (token, nextIndex)
+    }
+    
     func parseTokens(tokens : Array<String>, startIndex : Int, endIndex :Int) -> (expression : Expression, lastIndex: Int) {
         switch tokens[startIndex] {
         case "(":
             println("readTilListEnd")
             return readTillListEnd(tokens, startIndex: startIndex + 1, endIndex: endIndex)
-        case "+", "*", "*", "-", "/", "%", "<", ">", "=":
+        case "+", "*", "*", "-", "/", "%", "<", ">", "=", "if":
             return (Symbol(name: tokens[startIndex]), startIndex)
         default:
             println("'" + tokens[startIndex] + "'.toInt")

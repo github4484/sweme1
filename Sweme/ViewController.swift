@@ -19,6 +19,9 @@ class ViewController: UIViewController {
         let expression = evaluator.parse("(+ 0 (+ 1 22) 333)")
         println("parsed")
         println(expression?.toString())
+        let evaluated = evaluator.eval(expression!)
+        println("== result ==")
+        println(evaluated.toString())
     }
 
     override func didReceiveMemoryWarning() {

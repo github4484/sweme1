@@ -8,13 +8,31 @@
 
 import Foundation
 
-class Interpreter {
-    
+class Number : Expression {
+    let value : Int
+    init(value: Int){
+        self.value = value
+        super.init(type: ExpressionType.Number)
+    }
+    override func toString() -> String {
+        return "Number(" + String(self.value) + ")"
+    }
+    override func toInt() -> Int? {
+        return self.value
+    }
+    override func eval() -> Expression {
+        return self
+    }
 }
 
+
 class List : Expression {
-    var items : Array<Expression> = []
-    init(){}
+    var items : Array<Expression>
+    
+    init(){
+        items = []
+        super.init(type: ExpressionType.List)
+    }
     
     override func toString() -> String {
         var str = "List("
@@ -23,19 +41,24 @@ class List : Expression {
             str += " "
         }
         return str + ")"
-        
     }
-}
+    override func eval() -> Expression {
+        println("eval:" + self.toString())
+        var sum = 0
+        var index = 1
+        for var i = 1; i < items.count; i++ {
+            let item = items[i]
+            let number = item.eval().toInt()
+            if let n = number {
+                sum += n
+            }
+            index++
+        }
+        return Number(value: sum)
 
-class Number : Expression {
-    let value : Int
-    init(value: Int){
-        self.value = value
-    }
-    override func toString() -> String {
-        return "Number(" + String(self.value) + ")"
     }
 }
+/*
 class Pair : Expression {
     var first : Expression
     var second : Expression
@@ -45,26 +68,36 @@ class Pair : Expression {
         self.second = second
     }
 }
-
+*/
 enum ExpressionType {
     case Symbol
     case Pair
     case Number
+    case List
+    case Expression
 }
 
 
 class Expression {
+    var type = ExpressionType.Expression
+    init (type : ExpressionType){
+        self.type = type
+    }
     func toString() -> String { return "expression" }
-}
-
-class Value {
-    
+    func eval() -> Expression {
+        println("eval:" + self.toString())
+        return self
+    }
+    func toInt() -> Int? {
+        return nil
+    }
 }
 
 class Symbol : Expression {
     let name :String
     init(name : String){
         self.name = name
+        super.init(type: ExpressionType.Symbol)
     }
     
     override func toString() -> String {
@@ -169,7 +202,7 @@ class Evaluator {
             let value = tokens[startIndex].toInt()
             return (Number(value: value!), startIndex)
         }
-}
+    }
 
     func readTillListEnd(tokens : Array<String>, startIndex : Int, endIndex : Int) -> (expression : Expression, lastIndex: Int) {
         var list = List()
@@ -184,6 +217,9 @@ class Evaluator {
         return (list, nextIndex)
     }
     
+    func eval(expression : Expression) -> Expression {
+        return expression.eval()
+    }
 }
 
 class Environment {
